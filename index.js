@@ -32,16 +32,7 @@ app.get('/alunos', async (req, res) => {
 app.post('/alunos', async (req, res) => {
   const newStudent = req.body;
   try {
-    const result = await pool.query(
-      'INSERT INTO alunos (nome_aluno, nome_responsavel, data_nascimento, serie, data_pagamento) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [
-        newStudent.nomeAluno,
-        newStudent.nomeResponsavel,
-        newStudent.dataNascimento,
-        newStudent.serie,
-        newStudent.dataPagamento,
-      ]
-    );
+    const result = await pool.query( 'INSERT INTO alunos (nome_aluno, nome_responsavel, data_nascimento, serie, data_pagamento, cpf_responsavel, telefone, endereco, cep, identidade_aluno, horario, valor_mensalidade) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *', [ newStudent.nomeAluno, newStudent.nomeResponsavel, newStudent.dataNascimento, newStudent.serie, newStudent.dataPagamento, newStudent.cpfResponsavel, newStudent.telefone, newStudent.endereco, newStudent.cep, newStudent.identidadeAluno, newStudent.horario, newStudent.valorMensalidade, ] );
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error adding student', error);
