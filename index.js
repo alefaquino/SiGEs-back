@@ -7,11 +7,7 @@ const app = express();
 const port = 3000;
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'escola',
-  password: '1234',
-  port: 5432,
+  connectionString: 'postgres://dpsqregm:ssMbht6SNAwrZiaGHvwdwkae81cMVj_H@silly.db.elephantsql.com/dpsqregm'
 });
 
 // Middleware
