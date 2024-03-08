@@ -144,6 +144,129 @@ app.delete('/alunos/:id', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+
+  app.get('/professores', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM professor');
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching professors', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+  app.post('/professores', async (req, res) => {
+    const { nome, situacao, datapagamento } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO professor (nome, situacao, datapagamento) VALUES ($1, $2, $3) RETURNING *',
+            [nome, situacao, datapagamento]
+        );
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error adding professor', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+  // Rota para deletar um professor pelo ID
+app.delete('/professores/:id', async (req, res) => {
+  const professorId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      'DELETE FROM professor WHERE id = $1 RETURNING *',
+      [professorId]
+    );
+
+    // Verifica se o professor foi encontrado e deletado
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Professor not found' });
+    }
+
+    res.json({ message: 'Professor deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting professor', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Rota para editar um professor pelo ID
+app.put('/professores/:id', async (req, res) => {
+  const professorId = req.params.id;
+  const { nome, situacao } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE professor SET nome = $1, situacao = $2 WHERE id = $3 RETURNING *',
+      [nome, situacao, professorId]
+    );
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ error: 'Professor not found' });
+    }
+  } catch (error) {
+    console.error('Error updating professor', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/professores/atualizar-pagamento/:id', async (req, res) => {
+  const { id } = req.params;
+  const { situacao } = req.body;
+  let dataPagamento = req.body.datapagamento;
+
+  try {
+    if (!dataPagamento) {
+      dataPagamento = new Date().toISOString();
+    }
+
+    const ultimoPagamento = new Date(dataPagamento);
+    ultimoPagamento.setMonth(ultimoPagamento.getMonth() + 1);
+    const hoje = new Date();
+
+    if (hoje > ultimoPagamento) {
+      dataPagamento = hoje.toISOString();
+      situacao = 'não pago';
+    }
+
+    const result = await pool.query(
+      'UPDATE professor SET datapagamento = $1, situacao = $2 WHERE id = $3 RETURNING *',
+      [dataPagamento, situacao, id]
+    );
+
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ error: 'Professor not found' });
+    }
+  } catch (error) {
+    console.error('Error updating professor payment date', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/professores/pesquisar', async (req, res) => {
+  const { nome } = req.query;
+
+  try {
+    let query = 'SELECT * FROM professor';
+    const params = [];
+
+    // Se o parâmetro de nome estiver presente na query, filtramos pelo nome
+    if (nome) {
+      query += ' WHERE nome ILIKE $1';
+      params.push(`%${nome}%`);
+    }
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error searching professors by name', error);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
+  }
+});
+
+
   
 
 app.listen(port, () => {
