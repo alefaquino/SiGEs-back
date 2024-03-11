@@ -13,7 +13,7 @@ const pool = new Pool({
 // Middleware
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({ origin: '*' }));
 
 // Routes
 app.get('/alunos', async (req, res) => {
